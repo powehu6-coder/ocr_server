@@ -1,0 +1,37 @@
+# DDDOCR + Flask 簡易驗證碼辨識 API
+from flask import Flask, request, jsonify
+import dddocr
+import base64
+from io import BytesIO
+from PIL import Image
+
+app = Flask(__name__)
+
+# 初始化 DDDOCR OCR 模型
+ocr = dddocr.DddOcr()
+
+@app.route("/ocr", methods=["POST"])
+def ocr_api():
+    try:
+        # 前端傳 base64 圖片
+        data = request.json
+        img_base64 = data.get("image", "")
+        if not img_base64:
+            return jsonify({"error": "No image provided"}), 400
+
+        # 將 base64 轉為 PIL Image
+        image_data = base64.b64decode(img_base64.split(",")[-1])
+        image = Image.open(BytesIO(image_data))
+
+        # OCR 辨識
+        result = ocr.classification(image)
+        # 如果只需要 4 位數，過濾非數字並截取前 4 位
+        text = ''.join(filter(str.isdigit, result))[:4]
+
+        return jsonify({"text": text})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, host="127.0.0.1", port=5000)

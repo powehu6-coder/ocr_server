@@ -1,4 +1,4 @@
-Flask==2.3.4
+Flask==2.3.3
 flask-cors==4.2.0
 ddddocr==0.0.2
 gunicorn==21.2.0
